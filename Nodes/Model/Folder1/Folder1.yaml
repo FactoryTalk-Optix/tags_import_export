@@ -1,0 +1,4 @@
+Name: Folder1
+Type: FolderType
+Children:
+- File: Folder1/Folder1.yaml

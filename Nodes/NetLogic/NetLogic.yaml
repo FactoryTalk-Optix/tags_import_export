@@ -1,0 +1,96 @@
+Name: NetLogic
+Type: NetLogicCategoryFolder
+Children:
+- Name: ImportExportModel
+  Type: NetLogic
+  Children:
+  - Name: BehaviourStartPriority
+    Type: BehaviourStartPriorityVariableType
+    DataType: Byte
+    Value: 180
+  - Name: StartingNodeToFetch
+    Type: BaseDataVariableType
+    DataType: NodeId
+    Value: {"IdType":2,"Id":"d56e7a2af0eff501866c431a5a3be10b","Namespace":22}
+  - Class: Method
+    Name: ExportModelToCsv
+  - Class: Method
+    Name: ImportModelFromCsv
+  - Name: DeleteStatingNodeChildrenBeforeImport
+    Type: BaseDataVariableType
+    DataType: Boolean
+    Value: true
+- Name: ImportExportTags
+  Type: NetLogic
+  Children:
+  - Name: BehaviourStartPriority
+    Type: BehaviourStartPriorityVariableType
+    DataType: Byte
+    Value: 180
+  - Class: Method
+    Name: ExportToCsv
+  - Name: StartingNodeToFetch
+    Type: BaseDataVariableType
+    DataType: NodeId
+    Value: {"IdType":2,"Id":"b0ceecfdd239dbc88046feabb9045b5f","Namespace":22}
+  - Class: Method
+    Name: ImportOrUpdateFromCsv
+- Name: FromPLCToModel
+  Type: NetLogic
+  Children:
+  - Name: BehaviourStartPriority
+    Type: BehaviourStartPriorityVariableType
+    DataType: Byte
+    Value: 180
+  - Name: InputNode
+    Type: BaseDataVariableType
+    DataType: NodeId
+    Value: {"IdType":2,"Id":"f65f5b945cf0b67bd2d2d1028208b484","Namespace":22}
+  - Class: Method
+    Name: GenerateNodesIntoModel
+  - Name: SetDynamicLinks
+    Type: BaseDataVariableType
+    DataType: Boolean
+    Value: false
+- Name: ImportExportAlarms
+  Type: NetLogic
+  Children:
+  - Name: BehaviourStartPriority
+    Type: BehaviourStartPriorityVariableType
+    DataType: Byte
+    Value: 180
+  - Class: Method
+    Name: ExportAlarms
+  - Class: Method
+    Name: ImportAlarms
+  - Name: CSVPath
+    Type: BaseDataVariableType
+    DataType: AbsoluteResourceUri
+    Value: ""
+  - Name: CharacterSeparator
+    Type: BaseDataVariableType
+    DataType: String
+    Value: ","
+  - Name: WrapFields
+    Type: BaseDataVariableType
+    DataType: Boolean
+    Value: false
+  - Name: MessageAsTranslationKey
+    Type: BaseDataVariableType
+    DataType: Boolean
+    Value: false
+- Name: GenerateAlarms
+  Type: NetLogic
+  Children:
+  - Name: BehaviourStartPriority
+    Type: BehaviourStartPriorityVariableType
+    DataType: Byte
+    Value: 180
+  - Class: Method
+    Name: GenerateDigitalAlarms
+  - Name: startingNode
+    Type: BaseDataVariableType
+    DataType: NodeId
+    Value: {"IdType":2,"Id":"d56e7a2af0eff501866c431a5a3be10b","Namespace":22}
+  - Class: Method
+    Name: ClearAlarmsFolder

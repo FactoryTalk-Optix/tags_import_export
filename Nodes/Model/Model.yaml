@@ -1,0 +1,22 @@
+Name: Model
+Id: g=d56e7a2af0eff501866c431a5a3be10b
+Type: ModelCategoryFolder
+Children:
+- Name: Variable1
+  Id: g=fae8646b979655b87a965efe30896656
+  Type: BaseDataVariableType
+  DataType: Int32
+  Value: 0
+- Name: Variable2
+  Id: g=4b38706c1974335a5ef199a8ce900f8c
+  Type: BaseDataVariableType
+  DataType: Boolean
+  Value: false
+- File: Folder1/Folder1.yaml
+- Name: Variable3
+  Id: g=6026e9b506483cb80f63dd2d8722a2c9
+  Type: BaseDataVariableType
+  DataType: Boolean
+  ValueRank: OneDimension
+  ArrayDimensions: [4]
+  Value: [false,false,false,false]
