@@ -73,13 +73,5 @@ Project:
    Uri: 'urn:FTOptix:S7TiaProfinet:Net'
    Module: FTOptix.S7TiaProfinet.Net
    Version: 1.0
-  25:
-   Uri: 'urn:FTOptix:Alarm'
-   Module: FTOptix.Alarm
-   Version: 1.1
-  26:
-   Uri: 'urn:FTOptix:Alarm:Net'
-   Module: FTOptix.Alarm.Net
-   Version: 1.0
  Nodes:
  - File: Nodes/tags_import_export.yaml

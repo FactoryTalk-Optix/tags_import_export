@@ -18,26 +18,22 @@ using FTOptix.Alarm;
 
 public class ImportExportTags : BaseNetLogic
 {
-    private string csvFilename;
-    private string tagsCsvUri;
-    private IUANode startingNode;
-    private const string csvSeparator = ";";
-    private const string CSV_FILENAME = "tags.csv";
-    private const string arrayLengthSeparator = ",";
-    private int tagsCreated = 0;
-    private int tagsUpdated = 0;
-    private int tagStructuresCreated = 0;
-    private List<string> customTagsPropertiesNames = new List<string> { "Type", "BrowseName", "BrowsePath", "NodeDataType", "ArrayLength" };
-    private List<string> tagsPropertiesNames;
-
-    // TODO: gestire anche tipo Folder 
-    // TODO: OPC-UA Client?
+    private string _tagsCsvUri;
+    private IUANode _startingNode;
+    private const string _csvSeparator = ";";
+    private const string _CSV_FILENAME = "tags.csv";
+    private const string _arrayLengthSeparator = ",";
+    private int _tagsCreated = 0;
+    private int _tagsUpdated = 0;
+    private int _tagStructuresCreated = 0;
+    private static readonly List<string> _customTagsPropertiesNames = new List<string> { "Type", "BrowseName", "BrowsePath", "NodeDataType", "ArrayLength" };
+    private List<string> _tagsPropertiesNames;
 
     [ExportMethod]
     public void ExportToCsv()
     {
         RetrieveParameters();
-        WriteTagsToCsv(startingNode);
+        WriteTagsToCsv(_startingNode);
     }
 
     [ExportMethod]
@@ -46,18 +42,18 @@ public class ImportExportTags : BaseNetLogic
         RetrieveParameters();
         try
         {
-            using (StreamReader reader = new StreamReader(tagsCsvUri))
+            using (StreamReader reader = new StreamReader(_tagsCsvUri))
             {
                 string line = reader.ReadLine();
-                string[] header = line.Split(csvSeparator); ;
+                string[] header = line.Split(_csvSeparator);
                 if (line == null) return;
                 while ((line = reader.ReadLine()) != null)
                 {
-                    string[] values = line.Split(csvSeparator);
+                    string[] values = line.Split(_csvSeparator);
                     CreateOrUpdateTagFromCsvLine(values, header);
                 }
             }
-            Log.Info("Tags updated: " + tagsUpdated + " Tags created: " + tagsCreated + " TagStructure created: " + tagStructuresCreated);
+            Log.Info("Tags updated: " + _tagsUpdated + " Tags created: " + _tagsCreated + " TagStructure created: " + _tagStructuresCreated);
         }
         catch (System.Exception ex)
         {
@@ -69,7 +65,7 @@ public class ImportExportTags : BaseNetLogic
     {
         try
         {
-            var tagTypeString = values[GetElementIndex(header, customTagsPropertiesNames[0])];
+            var tagTypeString = values[GetElementIndex(header, _customTagsPropertiesNames[0])];
             if (tagTypeString == typeof(FTOptix.CommunicationDriver.TagStructure).FullName)
             {
                 var arrayDim = GetArrayLengthString(values, header);
@@ -100,15 +96,14 @@ public class ImportExportTags : BaseNetLogic
 
     private void GenerateTagStructure(string[] values, string[] header, UAVariable tStructure)
     {
-        var tagBrowseName = GetBrowseName(values, header);
         var tagBrowsePath = GetBrowsePath(values, header);
-        var owner = GetOwnerNode(startingNode, tagBrowsePath);
+        var owner = GetOwnerNode(_startingNode, tagBrowsePath);
         var alreadyExistingNode = NodeAlreadyExists(owner, tStructure) != null;
 
         if (!alreadyExistingNode)
         {
             owner.Add(tStructure);
-            tagStructuresCreated++;
+            _tagStructuresCreated++;
         };
     }
 
@@ -121,15 +116,14 @@ public class ImportExportTags : BaseNetLogic
             var tagBrowsePath = GetBrowsePath(values, header);
             var tagDataTypeString = GetDataTypeString(values, header);
             var tagArrayLengthString = GetArrayLengthString(values, header);
-
             if (tagTypeString == typeof(FTOptix.S7TCP.Tag).FullName) tag = InformationModel.Make<FTOptix.S7TCP.Tag>(tagBrowseName);
+            else if (tagTypeString == typeof(FTOptix.S7TiaProfinet.Tag).FullName) tag = InformationModel.Make<FTOptix.S7TiaProfinet.Tag>(tagBrowseName);
             else if (tagTypeString == typeof(FTOptix.CODESYS.Tag).FullName) tag = InformationModel.Make<FTOptix.CODESYS.Tag>(tagBrowseName);
             else if (tagTypeString == typeof(FTOptix.Modbus.Tag).FullName) tag = InformationModel.Make<FTOptix.Modbus.Tag>(tagBrowseName);
             else if (tagTypeString == typeof(FTOptix.RAEtherNetIP.Tag).FullName) tag = InformationModel.Make<FTOptix.RAEtherNetIP.Tag>(tagBrowseName);
             else throw new NotImplementedException();
 
             tag.DataType = GetOpcUaDataType(tagDataTypeString);
-
             if (tagArrayLengthString != string.Empty) SetTagArrayDimensions(tag, tagArrayLengthString);
 
             PropertyInfo[] tagProperties = GetTypePropertieInfos(tag.GetType());
@@ -151,25 +145,25 @@ public class ImportExportTags : BaseNetLogic
                     switch (Type.GetTypeCode(p.PropertyType))
                     {
                         case TypeCode.Int16:
-                            SetPropertyValue(tag, p.Name, Int16.Parse(v));
+                            SetPropertyValue(tag, p.Name, short.Parse(v));
                             break;
                         case TypeCode.Int32:
-                            SetPropertyValue(tag, p.Name, Int32.Parse(v));
+                            SetPropertyValue(tag, p.Name, int.Parse(v));
                             break;
                         case TypeCode.UInt16:
-                            SetPropertyValue(tag, p.Name, UInt16.Parse(v));
+                            SetPropertyValue(tag, p.Name, ushort.Parse(v));
                             break;
                         case TypeCode.UInt32:
-                            SetPropertyValue(tag, p.Name, UInt32.Parse(v));
+                            SetPropertyValue(tag, p.Name, uint.Parse(v));
                             break;
                         case TypeCode.Double:
-                            SetPropertyValue(tag, p.Name, Double.Parse(v));
+                            SetPropertyValue(tag, p.Name, double.Parse(v));
                             break;
                         case TypeCode.Byte:
-                            SetPropertyValue(tag, p.Name, Byte.Parse(v));
+                            SetPropertyValue(tag, p.Name, byte.Parse(v));
                             break;
                         case TypeCode.Boolean:
-                            SetPropertyValue(tag, p.Name, Boolean.Parse(v));
+                            SetPropertyValue(tag, p.Name, bool.Parse(v));
                             break;
                         case TypeCode.String:
                             SetPropertyValue(tag, p.Name, v.ToString());
@@ -180,18 +174,18 @@ public class ImportExportTags : BaseNetLogic
                 }
             }
 
-            var owner = GetOwnerNode(startingNode, tagBrowsePath);
+            var owner = GetOwnerNode(_startingNode, tagBrowsePath);
             var alreadyExistingTag = NodeAlreadyExists(owner, tag);
 
             if (alreadyExistingTag != null)
             {
                 TagsUpdate(alreadyExistingTag, tag);
-                tagsUpdated++;
+                _tagsUpdated++;
             }
             else
             {
                 owner.Add(tag);
-                tagsCreated++;
+                _tagsCreated++;
             }
         }
         catch (System.Exception ex)
@@ -200,12 +194,12 @@ public class ImportExportTags : BaseNetLogic
         }
     }
 
-    private void SetTagArrayDimensions(FTOptix.CommunicationDriver.Tag tag, string tagArrayLengthString)
+    private static void SetTagArrayDimensions(FTOptix.CommunicationDriver.Tag tag, string tagArrayLengthString)
     {
-        var isDataMatrix = tagArrayLengthString.Contains(arrayLengthSeparator);
+        var isDataMatrix = tagArrayLengthString.Contains(_arrayLengthSeparator);
         if (isDataMatrix)
         {
-            var indexes = tagArrayLengthString.Split(arrayLengthSeparator);
+            var indexes = tagArrayLengthString.Split(_arrayLengthSeparator);
             var index0 = uint.Parse(indexes[0]);
             var index1 = uint.Parse(indexes[1]);
             tag.ArrayDimensions = new uint[] { index0, index1 };
@@ -217,7 +211,7 @@ public class ImportExportTags : BaseNetLogic
         }
     }
 
-    private void TagsUpdate(IUANode destinationTag, FTOptix.CommunicationDriver.Tag sourceTag)
+    private static void TagsUpdate(IUANode destinationTag, FTOptix.CommunicationDriver.Tag sourceTag)
     {
         try
         {
@@ -242,9 +236,9 @@ public class ImportExportTags : BaseNetLogic
         }
     }
 
-    private IUANode NodeAlreadyExists(IUANode tagOwner, IUANode tag) => tagOwner.Children.FirstOrDefault(t => t.BrowseName == tag.BrowseName);
+    private static IUANode NodeAlreadyExists(IUANode tagOwner, IUANode tag) => tagOwner.Children.FirstOrDefault(t => t.BrowseName == tag.BrowseName);
 
-    private IUANode GetOwnerNode(IUANode startingNode, string relativePath)
+    private static IUANode GetOwnerNode(IUANode startingNode, string relativePath)
     {
         var rawPath = relativePath.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
         var path = new string[rawPath.Length - 2];
@@ -256,20 +250,19 @@ public class ImportExportTags : BaseNetLogic
         return tagOwner;
     }
 
-    private int GetElementIndex(string[] array, string key) => Array.IndexOf(array, key);
+    private static int GetElementIndex(string[] array, string key) => Array.IndexOf(array, key);
 
     private void RetrieveParameters()
     {
-        csvFilename = CSV_FILENAME;
-        tagsCsvUri = ResourceUri.FromProjectRelativePath(csvFilename).Uri;
-        startingNode = InformationModel.Get(LogicObject.GetVariable("StartingNodeToFetch").Value);
+        _tagsCsvUri = ResourceUri.FromProjectRelativePath(_CSV_FILENAME).Uri;
+        _startingNode = InformationModel.Get(LogicObject.GetVariable("StartingNodeToFetch").Value);
     }
 
     private void WriteTagsToCsv(IUANode startingNode)
     {
         try
         {
-            File.Create(tagsCsvUri).Close();
+            File.Create(_tagsCsvUri).Close();
             var tag = GetOneOfTheTags(startingNode);
             var csvHeader = GenerateCsvHeader(tag);
             var tagPropertiesNames = GetTagPropertiesNames(tag);
@@ -281,7 +274,7 @@ public class ImportExportTags : BaseNetLogic
 
             System.Text.Encoding encoding = System.Text.Encoding.Unicode;
 
-            using (StreamWriter sWriter = new StreamWriter(tagsCsvUri, false, encoding))
+            using (StreamWriter sWriter = new(_tagsCsvUri, false, encoding))
             {
                 sWriter.WriteLine(csvHeader);
                 foreach (var t in tagsStructureArrays) WriteTagOnCsv<FTOptix.CommunicationDriver.TagStructure>(t, tagPropertiesNames, sWriter);
@@ -289,7 +282,7 @@ public class ImportExportTags : BaseNetLogic
                 foreach (var t in tags) WriteTagOnCsv<FTOptix.CommunicationDriver.Tag>(t, tagPropertiesNames, sWriter);
             }
 
-            Log.Info("Tags exported: " + tags.Count());
+            Log.Info("Tags exported: " + tags.Count);
             Log.Info("Tag structures exported: " + tagsStructures.Count());
             Log.Info("Tag structure arrays exported: " + tagsStructureArrays.Count());
         }
@@ -302,7 +295,7 @@ public class ImportExportTags : BaseNetLogic
     private void WriteTagOnCsv<T>(T t, List<string> tagPropertiesNames, StreamWriter sWriter)
     {
         var tRow = GetPropertyInfoFromTag<T>(t, tagPropertiesNames);
-        sWriter.WriteLine(String.Join(csvSeparator, tRow));
+        sWriter.WriteLine(String.Join(_csvSeparator, tRow));
     }
 
     private IUANode GetOneOfTheTags(IUANode startingNode)
@@ -316,7 +309,7 @@ public class ImportExportTags : BaseNetLogic
         return null;
     }
 
-    private HashSet<string> GetPropertiesNamesFromTagType(Type type)
+    private static HashSet<string> GetPropertiesNamesFromTagType(Type type)
     {
         var propertiesNames = new HashSet<string>();
         foreach (PropertyInfo p in GetTypePropertieInfos(type))
@@ -326,13 +319,8 @@ public class ImportExportTags : BaseNetLogic
         return propertiesNames;
     }
 
-    private PropertyInfo[] GetTypePropertieInfos(Type type) => type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+    private static PropertyInfo[] GetTypePropertieInfos(Type type) => type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 
-    private List<string> GetTagPropertiesNames<T>()
-    {
-        var tagProperties = GetPropertiesNamesFromTagType(typeof(T));
-        return ComposeCustomAndNativeTagPropertiesNames(tagProperties);
-    }
 
     private List<string> GetTagPropertiesNames(IUANode t)
     {
@@ -342,19 +330,18 @@ public class ImportExportTags : BaseNetLogic
 
     private List<string> ComposeCustomAndNativeTagPropertiesNames(HashSet<string> tagProperties)
     {
-        tagsPropertiesNames = new List<string>();
-        tagsPropertiesNames.AddRange(customTagsPropertiesNames);
-        tagsPropertiesNames.AddRange(tagProperties);
-        return tagsPropertiesNames;
+        _tagsPropertiesNames = new List<string>();
+        _tagsPropertiesNames.AddRange(_customTagsPropertiesNames);
+        _tagsPropertiesNames.AddRange(tagProperties);
+        return _tagsPropertiesNames;
     }
 
-    private string GenerateCsvHeader<T>() => String.Join(csvSeparator, GetTagPropertiesNames<T>());
-    private string GenerateCsvHeader(IUANode t) => String.Join(csvSeparator, GetTagPropertiesNames(t));
+    private string GenerateCsvHeader(IUANode t) => string.Join(_csvSeparator, GetTagPropertiesNames(t));
     private List<string> GetPropertyInfoFromTag<T>(T t, List<string> tagProperties)
     {
         try
         {
-            Dictionary<string, string> tagPropertiesDict = new Dictionary<string, string>();
+            Dictionary<string, string> tagPropertiesDict = new();
             tagProperties = tagProperties.Distinct().ToList();
 
             switch (t)
@@ -363,13 +350,13 @@ public class ImportExportTags : BaseNetLogic
                     var imATag = (t as FTOptix.CommunicationDriver.Tag);
                     tagPropertiesDict.Add(tagProperties[0], imATag.GetType().FullName);
                     tagPropertiesDict.Add(tagProperties[1], imATag.BrowseName);
-                    tagPropertiesDict.Add(tagProperties[2], GetBrowsePath(startingNode, imATag, "/"));
+                    tagPropertiesDict.Add(tagProperties[2], GetBrowsePath(_startingNode, imATag, "/"));
                     tagPropertiesDict.Add(tagProperties[3], InformationModel.Get(imATag.DataType).BrowseName);
                     var tagArrayDim = imATag.ArrayDimensions.Length == 0 ?
                                             string.Empty
                                             : imATag.ArrayDimensions.Length == 1 ?
                                             imATag.ArrayDimensions[0].ToString()
-                                            : imATag.ArrayDimensions[0].ToString() + arrayLengthSeparator + imATag.ArrayDimensions[1].ToString();
+                                            : imATag.ArrayDimensions[0].ToString() + _arrayLengthSeparator + imATag.ArrayDimensions[1].ToString();
                     tagPropertiesDict.Add(tagProperties[4], tagArrayDim);
                     for (int i = 5; i < tagProperties.Count; i++)
                     {
@@ -382,7 +369,7 @@ public class ImportExportTags : BaseNetLogic
                     var imATagStructure = (t as FTOptix.CommunicationDriver.TagStructure);
                     tagPropertiesDict.Add(tagProperties[0], imATagStructure.GetType().FullName);
                     tagPropertiesDict.Add(tagProperties[1], imATagStructure.BrowseName);
-                    tagPropertiesDict.Add(tagProperties[2], GetBrowsePath(startingNode, imATagStructure, "/"));
+                    tagPropertiesDict.Add(tagProperties[2], GetBrowsePath(_startingNode, imATagStructure, "/"));
                     tagPropertiesDict.Add(tagProperties[3], string.Empty);
 
                     if (imATagStructure.ArrayDimensions.Length == 0)
@@ -443,17 +430,17 @@ public class ImportExportTags : BaseNetLogic
         return GetBrowsePath(startingNode, uANode.Owner, sepatator) + sepatator + uANode.BrowseName;
     }
 
-    private string GetBrowseName(string[] values, string[] header) => values[GetElementIndex(header, customTagsPropertiesNames[1])];
-    private string GetBrowsePath(string[] values, string[] header) => values[GetElementIndex(header, customTagsPropertiesNames[2])];
-    private string GetDataTypeString(string[] values, string[] header) => values[GetElementIndex(header, customTagsPropertiesNames[3])];
-    private string GetArrayLengthString(string[] values, string[] header) => values[GetElementIndex(header, customTagsPropertiesNames[4])];
-    private void SetPropertyValue(FTOptix.CommunicationDriver.Tag tag, PropertyInfo propertyInfo, object val) => SetPropertyValue(tag, propertyInfo.Name, val);
-    private void SetPropertyValue(FTOptix.CommunicationDriver.Tag tag, string propertyName, object val) => tag.GetType().GetProperty(propertyName).SetValue(tag, val);
-    private void SetPropertyValue(IUANode tag, string propertyName, object val) => tag.GetType().GetProperty(propertyName).SetValue(tag, val);
-    private PropertyInfo GetProperty<T>(T tag, string propertyName) => tag.GetType().GetProperty(propertyName);
-    private object GetPropertyValue<T>(T tag, string propertyName) => GetProperty(tag, propertyName).GetValue(tag);
+    private static string GetBrowseName(string[] values, string[] header) => values[GetElementIndex(header, _customTagsPropertiesNames[1])];
+    private static string GetBrowsePath(string[] values, string[] header) => values[GetElementIndex(header, _customTagsPropertiesNames[2])];
+    private static string GetDataTypeString(string[] values, string[] header) => values[GetElementIndex(header, _customTagsPropertiesNames[3])];
+    private static string GetArrayLengthString(string[] values, string[] header) => values[GetElementIndex(header, _customTagsPropertiesNames[4])];
+    private static void SetPropertyValue(FTOptix.CommunicationDriver.Tag tag, PropertyInfo propertyInfo, object val) => SetPropertyValue(tag, propertyInfo.Name, val);
+    private static void SetPropertyValue(FTOptix.CommunicationDriver.Tag tag, string propertyName, object val) => tag.GetType().GetProperty(propertyName).SetValue(tag, val);
+    private static void SetPropertyValue(IUANode tag, string propertyName, object val) => tag.GetType().GetProperty(propertyName).SetValue(tag, val);
+    private static PropertyInfo GetProperty<T>(T tag, string propertyName) => tag.GetType().GetProperty(propertyName);
+    private static object GetPropertyValue<T>(T tag, string propertyName) => GetProperty(tag, propertyName).GetValue(tag);
 
-    private NodeId GetOpcUaDataType(string tagDataTypeString)
+    private static NodeId GetOpcUaDataType(string tagDataTypeString)
     {
         var tagNetType = GetNetTypeFromOPCUAType(tagDataTypeString);
 
@@ -490,10 +477,9 @@ public class ImportExportTags : BaseNetLogic
         }
     }
 
-    private Type GetNetTypeFromOPCUAType(string dataTypeString)
+    private static Type GetNetTypeFromOPCUAType(string dataTypeString)
     {
         var netType = DataTypesHelper.GetNetTypeByDataTypeName(dataTypeString);
-        if (netType == null) throw new Exception($"Type corresponding to {dataTypeString} was not found in OPCUA namespace");
-        return netType;
+        return netType ?? throw new Exception($"Type corresponding to {dataTypeString} was not found in OPCUA namespace");
     }
 }
